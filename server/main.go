@@ -48,7 +48,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Routes
-	mux.HandleFunc("/api/ping", authMiddleware(handlePing))
+	mux.HandleFunc("/api/ping", handlePing) // No auth for health check
 	mux.HandleFunc("/api/notes", authMiddleware(handleNotes))
 	mux.HandleFunc("/api/notes/", authMiddleware(handleNote))
 	mux.HandleFunc("/api/search", authMiddleware(handleSearch))

@@ -30,6 +30,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOTOOLCHAIN: auto
 
   docker:
     runs-on: ubuntu-latest
