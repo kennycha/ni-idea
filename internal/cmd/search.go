@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/kennycha/ni-idea/internal/config"
-	"github.com/kennycha/ni-idea/internal/search"
+	"github.com/kennycha/ni-idea/internal/index"
 	"github.com/kennycha/ni-idea/internal/store"
 	"github.com/spf13/cobra"
 )
@@ -16,6 +16,7 @@ var (
 	searchAll            bool
 	searchLimit          int
 	searchIncludePrivate bool
+	searchFuzzy          bool
 )
 
 var searchCmd = &cobra.Command{
@@ -39,6 +40,7 @@ func init() {
 	searchCmd.Flags().BoolVar(&searchAll, "all", false, "Search all note types")
 	searchCmd.Flags().IntVar(&searchLimit, "limit", 0, "Limit number of results (0 = use config default)")
 	searchCmd.Flags().BoolVar(&searchIncludePrivate, "include-private", false, "Include private notes")
+	searchCmd.Flags().BoolVar(&searchFuzzy, "fuzzy", false, "Enable fuzzy search (allows typos)")
 }
 
 func runSearch(cmd *cobra.Command, args []string) error {
@@ -55,11 +57,35 @@ func runSearch(cmd *cobra.Command, args []string) error {
 		limit = cfg.DefaultSearchLimit
 	}
 
-	opts := search.Options{
+	// Open index
+	indexPath, err := index.DefaultIndexPath()
+	if err != nil {
+		return fmt.Errorf("failed to get index path: %w", err)
+	}
+
+	idx, err := index.Open(indexPath)
+	if err != nil {
+		return fmt.Errorf("failed to open index: %w", err)
+	}
+	defer idx.Close()
+
+	// Check if index is empty and rebuild if needed
+	docCount, _ := idx.DocCount()
+	if docCount == 0 {
+		fmt.Println("Index is empty, building...")
+		count, err := idx.Rebuild(cfg.NotesDir)
+		if err != nil {
+			return fmt.Errorf("failed to build index: %w", err)
+		}
+		fmt.Printf("Indexed %d notes.\n\n", count)
+	}
+
+	opts := index.SearchOptions{
 		Query:          query,
 		All:            searchAll,
 		Limit:          limit,
 		IncludePrivate: searchIncludePrivate,
+		Fuzzy:          searchFuzzy,
 	}
 
 	if searchTag != "" {
@@ -70,7 +96,7 @@ func runSearch(cmd *cobra.Command, args []string) error {
 		opts.Type = store.NoteType(searchType)
 	}
 
-	results, err := search.Search(cfg.NotesDir, opts)
+	results, err := idx.Search(cfg.NotesDir, opts)
 	if err != nil {
 		return fmt.Errorf("search failed: %w", err)
 	}

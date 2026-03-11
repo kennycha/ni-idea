@@ -34,4 +34,5 @@ func init() {
 	rootCmd.AddCommand(tagsCmd)
 	rootCmd.AddCommand(searchCmd)
 	rootCmd.AddCommand(addCmd)
+	rootCmd.AddCommand(indexCmd)
 }

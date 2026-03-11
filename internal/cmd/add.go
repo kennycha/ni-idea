@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/kennycha/ni-idea/internal/config"
+	"github.com/kennycha/ni-idea/internal/index"
 	"github.com/kennycha/ni-idea/internal/store"
 	"github.com/spf13/cobra"
 )
@@ -81,9 +82,10 @@ func runAdd(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Created: %s\n", notePath)
 
+	fullPath := filepath.Join(cfg.NotesDir, notePath)
+
 	// Open in editor
 	if !addNoEdit {
-		fullPath := filepath.Join(cfg.NotesDir, notePath)
 		editor := cfg.Editor
 		if editor == "" {
 			editor = os.Getenv("EDITOR")
@@ -102,5 +104,31 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// Index the note
+	if err := indexNote(fullPath, notePath); err != nil {
+		fmt.Printf("Warning: failed to index note: %v\n", err)
+	}
+
 	return nil
+}
+
+func indexNote(fullPath, relativePath string) error {
+	indexPath, err := index.DefaultIndexPath()
+	if err != nil {
+		return err
+	}
+
+	idx, err := index.Open(indexPath)
+	if err != nil {
+		return err
+	}
+	defer idx.Close()
+
+	note, err := store.ReadNote(fullPath)
+	if err != nil {
+		return err
+	}
+	note.Path = relativePath
+
+	return idx.IndexNote(note)
 }
