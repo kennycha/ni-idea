@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ni-idea
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ni-server-secret
+  namespace: ni-idea
+type: Opaque
+stringData:
+  tokens: "your-secret-token"  # 변경 필요
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ni-server-pvc
+  namespace: ni-idea
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ni-server
+  namespace: ni-idea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ni-server
+  template:
+    metadata:
+      labels:
+        app: ni-server
+    spec:
+      containers:
+      - name: ni-server
+        image: ni-server:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: NI_AUTH_TOKENS
+          valueFrom:
+            secretKeyRef:
+              name: ni-server-secret
+              key: tokens
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: ni-server-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ni-server
+  namespace: ni-idea
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30080
+  selector:
+    app: ni-server

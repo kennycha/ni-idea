@@ -7,7 +7,8 @@ before:
     - go mod tidy
 
 builds:
-  - main: ./cmd/ni
+  - id: ni
+    main: ./cmd/ni
     binary: ni
     env:
       - CGO_ENABLED=0
@@ -21,9 +22,36 @@ builds:
     ldflags:
       - -s -w
 
+  - id: ni-server
+    main: ./server
+    binary: ni-server
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+
 archives:
-  - format: tar.gz
+  - id: ni
+    builds:
+      - ni
+    format: tar.gz
     name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+  - id: ni-server
+    builds:
+      - ni-server
+    format: tar.gz
+    name_template: "ni-server_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
         format: zip

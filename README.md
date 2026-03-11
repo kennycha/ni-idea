@@ -126,14 +126,46 @@ ni pull --theirs           # 충돌 시 리모트 버전 사용
 
 여러 기기에서 노트를 동기화하거나 팀과 공유하려면 서버를 실행합니다.
 
+### 서버 설치
+
+```bash
+# macOS (Apple Silicon)
+curl -L https://github.com/kennycha/ni-idea/releases/latest/download/ni-server_darwin_arm64.tar.gz | tar xz
+
+# macOS (Intel)
+curl -L https://github.com/kennycha/ni-idea/releases/latest/download/ni-server_darwin_amd64.tar.gz | tar xz
+
+# Linux
+curl -L https://github.com/kennycha/ni-idea/releases/latest/download/ni-server_linux_amd64.tar.gz | tar xz
+
+# From Source
+go build -o ni-server ./server
+```
+
 ### 서버 실행
 
 ```bash
-# 빌드
-go build -o ni-server ./server
-
-# 실행
 NI_AUTH_TOKENS=your-secret-token ./ni-server --port 8080 --data ./data
+```
+
+### Docker / Kubernetes 배포
+
+```bash
+# Docker
+docker build -t ni-server -f server/Dockerfile .
+docker run -d -p 8080:8080 -e NI_AUTH_TOKENS=your-secret-token -v ni-data:/data ni-server
+
+# microk8s
+# 1. 토큰 수정: server/k8s/deployment.yaml의 Secret
+# 2. 이미지 빌드
+docker build -t ni-server:latest -f server/Dockerfile .
+docker save ni-server:latest | microk8s ctr image import -
+
+# 3. 배포
+microk8s kubectl apply -f server/k8s/deployment.yaml
+
+# 4. 확인
+microk8s kubectl get pods -n ni-idea
 ```
 
 ### 클라이언트 연결
