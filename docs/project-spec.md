@@ -501,22 +501,68 @@ stdin으로 마크다운을 주입해 비인터랙티브하게 추가한다.
 
 ## 구현 순서 (Phase)
 
-### Phase 1 — MVP
+### Phase 1 — MVP ✅
 
-- [ ] 설정 파일 로딩
-- [ ] `ni init` — 노트 디렉토리 + 타입별 템플릿 파일 생성
-- [ ] `ni search` — 파일명 + 본문 grep 기반 검색
-- [ ] `ni get` — 노트 전문 출력
-- [ ] `ni list` — 목록 출력
-- [ ] `ni add` — 에디터 연동 (인터랙티브) + stdin 주입 (비인터랙티브) 노트 추가
-- [ ] `ni tags` — 태그 목록
-- [ ] `--json` 출력 지원
+- [x] 설정 파일 로딩
+- [x] `ni init` — 노트 디렉토리 + 타입별 템플릿 파일 생성
+- [x] `ni search` — 파일명 + 본문 grep 기반 검색
+- [x] `ni get` — 노트 전문 출력
+- [x] `ni list` — 목록 출력
+- [x] `ni add` — 에디터 연동 (인터랙티브) + stdin 주입 (비인터랙티브) 노트 추가
+- [x] `ni tags` — 태그 목록
+- [x] Claude Code skill 연동 (`ni-idea-search`, `ni-idea-add`)
 
-### Phase 2 — 검색 고도화 (선택)
+### Phase 2 — 검색 고도화
 
 - [ ] 인덱싱 도입 (bleve 등)
 - [ ] 퍼지 검색
 - [ ] 임베딩 기반 의미 검색 (로컬 모델 또는 API)
+
+### Phase 3 — 팀/회사 동기화
+
+개인 로컬 지식을 팀/회사 단위로 공유할 수 있도록 서버 연동 기능 추가.
+
+**CLI 명령어**
+
+```bash
+# 리모트 관리
+ni remote add <name> <url>
+ni remote list
+ni remote remove <name>
+
+# 동기화
+ni push <path>              # 특정 노트 업로드
+ni push --all               # private 제외 전체 업로드
+ni pull                     # 팀 노트 로컬 캐시로 동기화
+
+# 검색
+ni search "query" --team         # 리모트만 검색
+ni search "query" --all-sources  # 로컬 + 리모트 검색
+```
+
+**설정**
+
+```yaml
+remotes:
+  - name: team
+    url: https://ni.company.internal
+    token: ${NI_TEAM_TOKEN}
+```
+
+**서버 구성**
+
+| 항목 | 선택 |
+|------|------|
+| API | Go 또는 FastAPI |
+| 저장 | 파일 기반 → DB (필요시) |
+| 검색 | Phase 2 인덱싱/임베딩 재활용 |
+| 인증 | 토큰 기반, SSO 연동 가능 |
+
+**규칙**
+
+- `private: true` 노트는 push 불가
+- 서버 노트는 원작자만 수정 가능 (팀 권한 모델 확장 가능)
+- 충돌 시 서버 버전 우선 + 로컬 백업
 
 ---
 
