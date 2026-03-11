@@ -1,6 +1,6 @@
 module github.com/kennycha/ni-idea
 
-go 1.26.1
+go 1.22
 
 require (
 	github.com/RoaringBitmap/roaring/v2 v2.4.5 // indirect
