@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**ni-idea** is a personal knowledge base CLI tool designed for Engineers. It stores knowledge locally in markdown format and provides fast search via the `ni` command. Primary use case: Claude Code calling `ni` via bash to retrieve relevant context.
+**ni-idea** is a personal knowledge base CLI tool. It stores knowledge locally in markdown format and provides fast search via the `ni` command. Primary use case: Claude Code calling `ni` via bash to retrieve relevant context.
 
 ## Tech Stack
 

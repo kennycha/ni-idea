@@ -8,7 +8,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "ni",
-	Short: "Personal knowledge base CLI for Engineers",
+	Short: "Personal knowledge base CLI tool",
 	Long: `ni-idea is a personal knowledge base CLI tool.
 It stores knowledge locally in markdown format and provides fast search.
 
