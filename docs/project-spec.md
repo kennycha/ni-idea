@@ -512,22 +512,20 @@ stdin으로 마크다운을 주입해 비인터랙티브하게 추가한다.
 - [x] `ni tags` — 태그 목록
 - [x] Claude Code skill 연동 (`ni-idea-search`, `ni-idea-add`)
 
-### Phase 2 — 검색 고도화
+### Phase 2 — 검색 고도화 ✅
 
-- [ ] 인덱싱 도입 (bleve 등)
-- [ ] 퍼지 검색
-- [ ] 임베딩 기반 의미 검색 (로컬 모델 또는 API)
+- [x] 인덱싱 도입 (bleve)
+- [x] 퍼지 검색 (`--fuzzy` 플래그)
+- [ ] 임베딩 기반 의미 검색 (로컬 모델 또는 API) — 추후
 
-### Phase 3 — 원격 저장소 (클라우드/팀 동기화)
+### Phase 3 — 원격 저장소 (클라우드/팀 동기화) ✅
 
-로컬 지식을 원격 서버에 저장하여 여러 기기에서 접근하거나 팀과 공유할 수 있도록 지원.
-
-**용도**
-
-| 용도 | 설명 |
-|------|------|
-| 개인 클라우드 | 여러 기기에서 접근, 백업, 셀프호스팅/클라우드 |
-| 팀 공유 | 공유 노트 관리, 접근 제어 |
+- [x] `ni remote add/list/remove` — 리모트 관리
+- [x] `ni push` — 로컬 → 서버 업로드
+- [x] `ni pull` — 서버 → 로컬 다운로드
+- [x] 충돌 감지 및 해결 (`--force`, `--theirs`, `--ours`)
+- [x] Go 서버 구현 (파일 기반 저장, 토큰 인증)
+- [ ] 리모트 검색 (`--remote` 플래그) — 추후
 
 **CLI 명령어**
 
@@ -540,11 +538,10 @@ ni remote remove <name>
 # 동기화
 ni push <path>              # 특정 노트 업로드
 ni push --all               # private 제외 전체 업로드
-ni pull                     # 리모트 노트 로컬 캐시로 동기화
-
-# 검색
-ni search "query" --remote <name>  # 특정 리모트 검색
-ni search "query" --all-sources    # 로컬 + 모든 리모트 검색
+ni push --force             # 충돌 무시, 강제 업로드
+ni pull                     # 리모트 노트 로컬로 동기화
+ni pull --theirs            # 충돌 시 서버 버전 사용
+ni pull --ours              # 충돌 시 로컬 버전 유지
 ```
 
 **설정**
@@ -553,27 +550,20 @@ ni search "query" --all-sources    # 로컬 + 모든 리모트 검색
 remotes:
   - name: personal
     url: https://my-ni.vercel.app
-    token: ${NI_PERSONAL_TOKEN}
-  - name: team
-    url: https://ni.company.internal
-    token: ${NI_TEAM_TOKEN}
+    token: your-token
 ```
 
-**서버 구성**
+**서버 실행**
 
-| 항목 | 선택 |
-|------|------|
-| API | Go 또는 FastAPI |
-| 저장 | 파일 기반 → DB (필요시) |
-| 검색 | Phase 2 인덱싱/임베딩 재활용 |
-| 인증 | 토큰 기반, SSO 연동 가능 |
-| 배포 | Vercel, Fly.io, 셀프호스팅 등 |
+```bash
+NI_AUTH_TOKENS=token1,token2 ./ni-server --port 8080 --data ./data
+```
 
 **규칙**
 
-- `private: true` 노트는 명시적 옵션 없이 push 불가
-- 충돌 시 서버 버전 우선 + 로컬 백업
-- 팀 리모트: 접근 제어 레이어 추가 가능
+- `private: true` 노트는 명시적 `--include-private` 없이 push 불가
+- 충돌 감지: `updated` 타임스탬프 비교
+- 인덱스는 sync 제외 (pull 후 자동 재인덱싱)
 
 ---
 

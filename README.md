@@ -71,6 +71,7 @@ ni add --type practice --title "Kubernetes 실습"
 ni search "캐싱"              # problem, decision 검색
 ni search "캐싱" --all        # 전체 타입 검색
 ni search "캐싱" --tag nextjs # 태그 필터
+ni search "캐시" --fuzzy      # 퍼지 검색 (오타 허용)
 ```
 
 ### 조회
@@ -81,6 +82,28 @@ ni list                         # 전체 목록
 ni list --type problem          # 타입별 목록
 ni list --tag infra             # 태그별 목록
 ni tags                         # 태그 목록
+```
+
+### 인덱스 관리
+
+```bash
+ni index status    # 인덱스 상태 확인
+ni index rebuild   # 인덱스 재구축
+```
+
+### 원격 동기화
+
+```bash
+# 리모트 설정
+ni remote add personal https://my-server.com
+ni remote list
+ni remote remove personal
+
+# 동기화
+ni push --all              # 전체 노트 업로드
+ni push problems/my-note   # 특정 노트 업로드
+ni pull                    # 리모트에서 다운로드
+ni pull --theirs           # 충돌 시 리모트 버전 사용
 ```
 
 ## 노트 타입
@@ -98,6 +121,30 @@ ni tags                         # 태그 목록
 
 - `/ni-idea-search` - 과거 경험 검색
 - `/ni-idea-add` - 새 지식 기록
+
+## 서버 (선택)
+
+여러 기기에서 노트를 동기화하거나 팀과 공유하려면 서버를 실행합니다.
+
+### 서버 실행
+
+```bash
+# 빌드
+go build -o ni-server ./server
+
+# 실행
+NI_AUTH_TOKENS=your-secret-token ./ni-server --port 8080 --data ./data
+```
+
+### 클라이언트 연결
+
+```bash
+ni remote add myserver http://localhost:8080
+# Token 입력 프롬프트
+
+ni push --all   # 업로드
+ni pull         # 다운로드
+```
 
 ## License
 
