@@ -148,23 +148,28 @@ go build -o ni-server ./server
 NI_AUTH_TOKENS=your-secret-token ./ni-server --port 8080 --data ./data
 ```
 
-### Docker / Kubernetes 배포
+### Docker 배포
 
 ```bash
-# Docker
-docker build -t ni-server -f server/Dockerfile .
-docker run -d -p 8080:8080 -e NI_AUTH_TOKENS=your-secret-token -v ni-data:/data ni-server
+docker run -d -p 8080:8080 \
+  -e NI_AUTH_TOKENS=your-secret-token \
+  -v ni-data:/data \
+  ghcr.io/kennycha/ni-server:latest
+```
 
-# microk8s
-# 1. 토큰 수정: server/k8s/deployment.yaml의 Secret
-# 2. 이미지 빌드
-docker build -t ni-server:latest -f server/Dockerfile .
-docker save ni-server:latest | microk8s ctr image import -
+### Kubernetes / microk8s 배포
 
-# 3. 배포
-microk8s kubectl apply -f server/k8s/deployment.yaml
+```bash
+# 1. Secret 생성 (토큰 설정)
+microk8s kubectl create namespace ni-idea
+microk8s kubectl create secret generic ni-server-secret \
+  --from-literal=tokens=your-secret-token \
+  -n ni-idea
 
-# 4. 확인
+# 2. 배포
+microk8s kubectl apply -f https://raw.githubusercontent.com/kennycha/ni-idea/main/server/k8s/deployment.yaml
+
+# 3. 확인
 microk8s kubectl get pods -n ni-idea
 ```
 

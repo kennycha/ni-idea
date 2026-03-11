@@ -4,15 +4,6 @@ metadata:
   name: ni-idea
 ---
 apiVersion: v1
-kind: Secret
-metadata:
-  name: ni-server-secret
-  namespace: ni-idea
-type: Opaque
-stringData:
-  tokens: "your-secret-token"  # 변경 필요
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: ni-server-pvc
@@ -41,8 +32,8 @@ spec:
     spec:
       containers:
       - name: ni-server
-        image: ni-server:latest
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/kennycha/ni-server:latest
+        imagePullPolicy: Always
         env:
         - name: NI_AUTH_TOKENS
           valueFrom:
