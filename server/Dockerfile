@@ -1,7 +1,13 @@
 # Build stage
-FROM golang:1.22-alpine AS builder
+FROM golang:1.23-alpine AS builder
+
+# Allow Go to download newer toolchain if needed
+ENV GOTOOLCHAIN=auto
 
 WORKDIR /app
+
+# Install git for go mod download (some deps need it)
+RUN apk add --no-cache git
 
 # Copy go mod files
 COPY go.mod go.sum ./
