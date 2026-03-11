@@ -6,6 +6,7 @@ import (
 
 	"github.com/kennycha/ni-idea/internal/config"
 	"github.com/kennycha/ni-idea/internal/index"
+	"github.com/kennycha/ni-idea/internal/remote"
 	"github.com/kennycha/ni-idea/internal/store"
 	"github.com/spf13/cobra"
 )
@@ -17,6 +18,7 @@ var (
 	searchLimit          int
 	searchIncludePrivate bool
 	searchFuzzy          bool
+	searchRemote         string
 )
 
 var searchCmd = &cobra.Command{
@@ -41,6 +43,7 @@ func init() {
 	searchCmd.Flags().IntVar(&searchLimit, "limit", 0, "Limit number of results (0 = use config default)")
 	searchCmd.Flags().BoolVar(&searchIncludePrivate, "include-private", false, "Include private notes")
 	searchCmd.Flags().BoolVar(&searchFuzzy, "fuzzy", false, "Enable fuzzy search (allows typos)")
+	searchCmd.Flags().StringVar(&searchRemote, "remote", "", "Search on remote server")
 }
 
 func runSearch(cmd *cobra.Command, args []string) error {
@@ -51,6 +54,48 @@ func runSearch(cmd *cobra.Command, args []string) error {
 
 	query := args[0]
 
+	// Remote search
+	if searchRemote != "" {
+		return runRemoteSearch(cfg, query)
+	}
+
+	// Local search
+	return runLocalSearch(cfg, query)
+}
+
+func runRemoteSearch(cfg *config.Config, query string) error {
+	r := cfg.GetRemote(searchRemote)
+	if r == nil {
+		return fmt.Errorf("remote '%s' not found", searchRemote)
+	}
+
+	client := remote.NewClient(r.URL, r.Token)
+	results, err := client.Search(query)
+	if err != nil {
+		return fmt.Errorf("remote search failed: %w", err)
+	}
+
+	if len(results) == 0 {
+		fmt.Println("No results found.")
+		return nil
+	}
+
+	for _, result := range results {
+		fmt.Println(result.Path)
+		fmt.Printf("  Title: %s\n", result.Title)
+		if len(result.Tags) > 0 {
+			fmt.Printf("  Tags: %s\n", strings.Join(result.Tags, ", "))
+		}
+		if len(result.Matches) > 0 {
+			fmt.Printf("  Match: \"%s\"\n", result.Matches[0])
+		}
+		fmt.Println()
+	}
+
+	return nil
+}
+
+func runLocalSearch(cfg *config.Config, query string) error {
 	// Determine limit
 	limit := searchLimit
 	if limit == 0 {

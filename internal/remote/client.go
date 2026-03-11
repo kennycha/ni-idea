@@ -2,9 +2,11 @@ package remote
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -47,11 +49,23 @@ type SearchResult struct {
 
 // NewClient creates a new API client
 func NewClient(baseURL, token string) *Client {
+	// Force IPv4 to avoid "no route to host" issues with IPv6
+	dialer := &net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}
+	transport := &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return dialer.DialContext(ctx, "tcp4", addr)
+		},
+	}
+
 	return &Client{
 		BaseURL: strings.TrimSuffix(baseURL, "/"),
 		Token:   token,
 		HTTPClient: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout:   30 * time.Second,
+			Transport: transport,
 		},
 	}
 }
