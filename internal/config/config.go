@@ -8,11 +8,18 @@ import (
 	"github.com/spf13/viper"
 )
 
+type Remote struct {
+	Name  string `yaml:"name" mapstructure:"name"`
+	URL   string `yaml:"url" mapstructure:"url"`
+	Token string `yaml:"token" mapstructure:"token"`
+}
+
 type Config struct {
-	NotesDir           string `yaml:"notes_dir" mapstructure:"notes_dir"`
-	TemplatesDir       string `yaml:"templates_dir" mapstructure:"templates_dir"`
-	Editor             string `yaml:"editor" mapstructure:"editor"`
-	DefaultSearchLimit int    `yaml:"default_search_limit" mapstructure:"default_search_limit"`
+	NotesDir           string    `yaml:"notes_dir" mapstructure:"notes_dir"`
+	TemplatesDir       string    `yaml:"templates_dir" mapstructure:"templates_dir"`
+	Editor             string    `yaml:"editor" mapstructure:"editor"`
+	DefaultSearchLimit int       `yaml:"default_search_limit" mapstructure:"default_search_limit"`
+	Remotes            []*Remote `yaml:"remotes" mapstructure:"remotes"`
 }
 
 const (
@@ -100,8 +107,50 @@ func simplifyPath(path string) string {
 }
 
 func (c *Config) ToYAML() string {
-	return `notes_dir: ` + simplifyPath(c.NotesDir) + `
+	yaml := `notes_dir: ` + simplifyPath(c.NotesDir) + `
 templates_dir: ` + simplifyPath(c.TemplatesDir) + `
 default_search_limit: ` + fmt.Sprintf("%d", c.DefaultSearchLimit) + `
 `
+	if len(c.Remotes) > 0 {
+		yaml += "remotes:\n"
+		for _, r := range c.Remotes {
+			yaml += fmt.Sprintf("  - name: %s\n    url: %s\n    token: %s\n", r.Name, r.URL, r.Token)
+		}
+	}
+	return yaml
+}
+
+// GetRemote returns a remote by name
+func (c *Config) GetRemote(name string) *Remote {
+	for _, r := range c.Remotes {
+		if r.Name == name {
+			return r
+		}
+	}
+	return nil
+}
+
+// AddRemote adds a new remote
+func (c *Config) AddRemote(remote *Remote) error {
+	if c.GetRemote(remote.Name) != nil {
+		return fmt.Errorf("remote '%s' already exists", remote.Name)
+	}
+	c.Remotes = append(c.Remotes, remote)
+	return nil
+}
+
+// RemoveRemote removes a remote by name
+func (c *Config) RemoveRemote(name string) error {
+	for i, r := range c.Remotes {
+		if r.Name == name {
+			c.Remotes = append(c.Remotes[:i], c.Remotes[i+1:]...)
+			return nil
+		}
+	}
+	return fmt.Errorf("remote '%s' not found", name)
+}
+
+// Save writes the config to the config file
+func (c *Config) Save() error {
+	return os.WriteFile(ConfigFilePath(), []byte(c.ToYAML()), 0644)
 }
