@@ -518,9 +518,16 @@ stdin으로 마크다운을 주입해 비인터랙티브하게 추가한다.
 - [ ] 퍼지 검색
 - [ ] 임베딩 기반 의미 검색 (로컬 모델 또는 API)
 
-### Phase 3 — 팀/회사 동기화
+### Phase 3 — 원격 저장소 (클라우드/팀 동기화)
 
-개인 로컬 지식을 팀/회사 단위로 공유할 수 있도록 서버 연동 기능 추가.
+로컬 지식을 원격 서버에 저장하여 여러 기기에서 접근하거나 팀과 공유할 수 있도록 지원.
+
+**용도**
+
+| 용도 | 설명 |
+|------|------|
+| 개인 클라우드 | 여러 기기에서 접근, 백업, 셀프호스팅/클라우드 |
+| 팀 공유 | 공유 노트 관리, 접근 제어 |
 
 **CLI 명령어**
 
@@ -533,17 +540,20 @@ ni remote remove <name>
 # 동기화
 ni push <path>              # 특정 노트 업로드
 ni push --all               # private 제외 전체 업로드
-ni pull                     # 팀 노트 로컬 캐시로 동기화
+ni pull                     # 리모트 노트 로컬 캐시로 동기화
 
 # 검색
-ni search "query" --team         # 리모트만 검색
-ni search "query" --all-sources  # 로컬 + 리모트 검색
+ni search "query" --remote <name>  # 특정 리모트 검색
+ni search "query" --all-sources    # 로컬 + 모든 리모트 검색
 ```
 
 **설정**
 
 ```yaml
 remotes:
+  - name: personal
+    url: https://my-ni.vercel.app
+    token: ${NI_PERSONAL_TOKEN}
   - name: team
     url: https://ni.company.internal
     token: ${NI_TEAM_TOKEN}
@@ -557,12 +567,13 @@ remotes:
 | 저장 | 파일 기반 → DB (필요시) |
 | 검색 | Phase 2 인덱싱/임베딩 재활용 |
 | 인증 | 토큰 기반, SSO 연동 가능 |
+| 배포 | Vercel, Fly.io, 셀프호스팅 등 |
 
 **규칙**
 
-- `private: true` 노트는 push 불가
-- 서버 노트는 원작자만 수정 가능 (팀 권한 모델 확장 가능)
+- `private: true` 노트는 명시적 옵션 없이 push 불가
 - 충돌 시 서버 버전 우선 + 로컬 백업
+- 팀 리모트: 접근 제어 레이어 추가 가능
 
 ---
 
