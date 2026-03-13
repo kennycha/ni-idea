@@ -19,6 +19,7 @@ var (
 	addTags    string
 	addPrivate bool
 	addNoEdit  bool
+	addBody    string
 )
 
 var addCmd = &cobra.Command{
@@ -40,6 +41,7 @@ func init() {
 	addCmd.Flags().StringVar(&addTags, "tag", "", "Tags (comma separated)")
 	addCmd.Flags().BoolVar(&addPrivate, "private", false, "Mark as private")
 	addCmd.Flags().BoolVar(&addNoEdit, "no-edit", false, "Don't open editor")
+	addCmd.Flags().StringVar(&addBody, "body", "", "Note body content (skips editor)")
 	addCmd.MarkFlagRequired("type")
 }
 
@@ -73,6 +75,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		Tags:         tags,
 		Private:      addPrivate,
 		TemplatesDir: cfg.TemplatesDir,
+		Body:         addBody,
 	}
 
 	notePath, err := store.CreateNote(cfg.NotesDir, opts)
@@ -84,8 +87,8 @@ func runAdd(cmd *cobra.Command, args []string) error {
 
 	fullPath := filepath.Join(cfg.NotesDir, notePath)
 
-	// Open in editor
-	if !addNoEdit {
+	// Open in editor (skip if --body provided or --no-edit)
+	if !addNoEdit && addBody == "" {
 		editor := cfg.Editor
 		if editor == "" {
 			editor = os.Getenv("EDITOR")

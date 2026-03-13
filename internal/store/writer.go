@@ -17,6 +17,7 @@ type CreateOptions struct {
 	Tags         []string
 	Private      bool
 	TemplatesDir string
+	Body         string
 }
 
 func CreateNote(notesDir string, opts CreateOptions) (string, error) {
@@ -54,6 +55,11 @@ func CreateNote(notesDir string, opts CreateOptions) (string, error) {
 
 	// Update frontmatter
 	content = updateFrontmatter(content, opts)
+
+	// Replace body if provided
+	if opts.Body != "" {
+		content = replaceBody(content, opts.Body)
+	}
 
 	// Write file
 	if err := os.WriteFile(notePath, []byte(content), 0644); err != nil {
@@ -107,6 +113,28 @@ func loadTemplate(noteType NoteType, templatesDir string) (string, error) {
 
 	// Fallback to builtin
 	return template.GetBuiltinTemplate(noteType.String()), nil
+}
+
+func replaceBody(content string, body string) string {
+	lines := strings.Split(content, "\n")
+	var result []string
+	frontmatterCount := 0
+
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "---" {
+			frontmatterCount++
+		}
+		result = append(result, line)
+		if frontmatterCount == 2 {
+			break
+		}
+	}
+
+	// Add body after frontmatter
+	result = append(result, "")
+	result = append(result, body)
+
+	return strings.Join(result, "\n")
 }
 
 func updateFrontmatter(content string, opts CreateOptions) string {

@@ -71,10 +71,11 @@ argument-hint: "[노트 타입: problem|decision|knowledge|practice]"
 ## 명령어
 
 ` + "```bash" + `
+# 에디터 없이 바로 생성 (Claude Code 권장)
+ni add --type problem --title "제목" --tag tag1,tag2 --body "내용"
+
+# 에디터로 편집
 ni add --type problem --title "제목"
-ni add --type decision --title "제목" --tag infra,k8s
-ni add --type knowledge --title "제목"
-ni add --type practice --title "제목"
 ` + "```" + `
 
 ## 가이드라인
@@ -87,9 +88,8 @@ ni add --type practice --title "제목"
 
 1. $ARGUMENTS에서 타입 확인 (없으면 대화 내용에서 추론하거나 질문)
 2. 대화 내용을 바탕으로 노트 내용 구성 (필요시 여러 노트로 분리)
-3. ` + "`ni add --type <type> --title \"제목\" --tag tag1,tag2 --no-edit`" + ` 실행
+3. ` + "`ni add --type <type> --title \"제목\" --tag tag1,tag2 --body \"내용\"`" + ` 실행
 4. 생성된 파일 경로 확인
-5. 필요시 추가 내용 작성
 `
 
 func InstallSkills() error {

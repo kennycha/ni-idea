@@ -59,10 +59,12 @@ Claude Code skill도 함께 설치할 수 있습니다 (선택).
 ### 노트 추가
 
 ```bash
+# 에디터 없이 바로 생성 (Claude Code 권장)
+ni add --type problem --title "Next.js 캐싱 이슈" --body "## 증상\n\n..."
+
+# 에디터로 편집
 ni add --type problem --title "Next.js 캐싱 이슈"
 ni add --type decision --title "배포 전략" --tag infra,k8s
-ni add --type knowledge --title "Go 동시성"
-ni add --type practice --title "Kubernetes 실습"
 ```
 
 ### 검색
