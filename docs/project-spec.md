@@ -565,6 +565,29 @@ NI_AUTH_TOKENS=token1,token2 ./ni-server --port 8080 --data ./data
 - 충돌 감지: `updated` 타임스탬프 비교
 - 인덱스는 sync 제외 (pull 후 자동 재인덱싱)
 
+### Phase 4 — 서버 고도화 (ArcadeDB)
+
+서버 저장소를 ArcadeDB로 전환하여 검색 및 관계 쿼리 고도화.
+
+- [ ] ArcadeDB 서버 연동 (HTTP/JSON API)
+- [ ] 마크다운 노트 → ArcadeDB 문서 import/export
+- [ ] 서버 측 전문 검색 + 퍼지 검색
+- [ ] 노트 간 관계 그래프 (참조, 관련 문제/결정)
+- [ ] 벡터 임베딩 기반 의미 검색
+- [ ] 리모트 검색 (`ni search --remote`)
+- [ ] MCP Server 연동 (Claude 직접 쿼리)
+
+**ArcadeDB 선택 이유**
+
+- 멀티모델: 문서 + 그래프 + 벡터를 단일 DB로 처리
+- 고성능: 수백만 레코드/초
+- 쿼리: SQL, Cypher, GraphQL 지원
+- 라이선스: Apache 2.0
+
+**참고**
+
+- https://github.com/ArcadeData/arcadedb
+
 ---
 
 ## 비고
